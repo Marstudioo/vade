@@ -17,11 +17,11 @@
 </p>
 
 <div align="center">
-    <h1>CardputerZero Application Template</h1>
+    <h1>Vade — Pocket Companion Terminal</h1>
 </div>
 
 <div align="center">
-  <p>A simple starter template for building embedded Linux GUI applications with LVGL and CMake.</p>
+  <p>Pocket companion terminal for CardputerZero: offline knowledge search, AI chat, tasks and field capture.</p>
 </div>
 
 <p align="center" style="margin: 20px 0; display: flex; justify-content: center; flex-wrap: wrap; gap: 12px;">
