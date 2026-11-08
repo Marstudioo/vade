@@ -191,6 +191,15 @@ uint32_t map_evdev_key(uint16_t code) {
             return LV_KEY_LEFT;
         case KEY_RIGHT:
             return LV_KEY_RIGHT;
+        case KEY_UP:
+            return LV_KEY_UP;
+        case KEY_DOWN:
+            return LV_KEY_DOWN;
+        case KEY_ENTER:
+        case KEY_KPENTER:
+            return LV_KEY_ENTER;
+        case KEY_BACKSPACE:
+            return LV_KEY_BACKSPACE;
         case KEY_Z:
             return 'z';
         case KEY_C:
@@ -210,8 +219,30 @@ uint32_t map_evdev_key(uint16_t code) {
         case KEY_HELP:
             return kKeyHelp;
         default:
-            return 0;
+            break;
     }
+
+    // 检索输入：字母/数字/常用标点全量翻译（Z/C/4~8 已在上面处理）
+    static const struct {
+        uint16_t code;
+        char ch;
+    } kChars[] = {
+        {KEY_A, 'a'}, {KEY_B, 'b'}, {KEY_D, 'd'}, {KEY_E, 'e'}, {KEY_F, 'f'},
+        {KEY_G, 'g'}, {KEY_H, 'h'}, {KEY_I, 'i'}, {KEY_J, 'j'}, {KEY_K, 'k'},
+        {KEY_L, 'l'}, {KEY_M, 'm'}, {KEY_N, 'n'}, {KEY_O, 'o'}, {KEY_P, 'p'},
+        {KEY_Q, 'q'}, {KEY_R, 'r'}, {KEY_S, 's'}, {KEY_T, 't'}, {KEY_U, 'u'},
+        {KEY_V, 'v'}, {KEY_W, 'w'}, {KEY_X, 'x'}, {KEY_Y, 'y'},
+        {KEY_1, '1'}, {KEY_2, '2'}, {KEY_3, '3'}, {KEY_9, '9'}, {KEY_0, '0'},
+        {KEY_SPACE, ' '}, {KEY_DOT, '.'}, {KEY_COMMA, ','}, {KEY_SLASH, '/'},
+        {KEY_SEMICOLON, ';'}, {KEY_APOSTROPHE, '\''}, {KEY_MINUS, '-'},
+        {KEY_EQUAL, '='}, {KEY_TAB, '\t'},
+    };
+    for (const auto& entry : kChars) {
+        if (entry.code == code) {
+            return static_cast<uint32_t>(entry.ch);
+        }
+    }
+    return 0;
 }
 
 bool has_nav_keys(int fd) {

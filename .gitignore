@@ -148,3 +148,7 @@ temp/
 
 # TODOS
 TODO
+
+# 坏缓存副本/冗余副本（待清理，不入库）
+.cache_broken_copy/
+.cache_dup_trash/

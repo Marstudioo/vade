@@ -21,6 +21,8 @@
 #include <filesystem>
 #include <memory>
 #include <string>
+#include <thread>
+#include <chrono>
 
 #if USE_DESKTOP
 #include "desktop_simulator_frame.h"
@@ -170,31 +172,70 @@ private:
         }
 
         const bool is_escape = key == LV_KEY_ESC;
-        const bool is_home_exit_key =
-            key == '4' &&
-            ((!long_pressed && view_model_.current_page() == model::AppPage::Apple) ||
-             (long_pressed && exit_key_pressed_ == key));
-        if (!is_escape && !is_home_exit_key) {
-            return false;
+
+        if (is_escape) {
+            if (long_pressed) {
+                // 官方语义：长按 ESC 直接退出应用（hold 即确认）
+                toast_->hide();
+                view_model_.request_quit();
+                return true;
+            }
+            exit_key_pressed_ = key;
+            if (view_model_.ime_composing_active()) {
+                view_model_.ime_cancel();  // Esc：先取消组词
+            }
+            return true;
         }
 
         if (long_pressed) {
-            if (exit_key_pressed_ == key && exit_armed_) {
-                toast_->hide();
-                view_model_.request_quit();
+            return false;
+        }
+
+        // 检索页：拼音组词 / 字符输入 / 列表导航（4~8 留给底部导航，不进输入）
+        if (view_model_.current_page() == model::AppPage::Search) {
+            const bool composing = view_model_.ime_composing_active();
+            if (key == LV_KEY_UP) {
+                if (composing) view_model_.ime_candidate_prev();
+                else view_model_.select_prev_result();
+                return true;
+            }
+            if (key == LV_KEY_DOWN) {
+                if (composing) view_model_.ime_candidate_next();
+                else view_model_.select_next_result();
+                return true;
+            }
+            if (key == LV_KEY_ENTER) {
+                if (composing) view_model_.ime_commit_selected();
+                else view_model_.open_selected_result();
+                return true;
+            }
+            if (key == ' ') {
+                if (composing) view_model_.ime_commit_first();
+                else view_model_.append_query_char(' ');
+                return true;
+            }
+            if (key == '\t') {
+                view_model_.toggle_ime_mode();  // Tab：中/英切换
+                return true;
+            }
+            if (key == LV_KEY_BACKSPACE || key == 0x08 || key == 0x7F) {
+                if (composing) view_model_.ime_backspace();
+                else view_model_.backspace_query();
+                return true;
+            }
+            if (key >= 32 && key < 127 && key != '4' && key != '5' && key != '6' &&
+                key != '7' && key != '8') {
+                const char c = static_cast<char>(key);
+                const bool is_alpha = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+                if (view_model_.ime_chinese_mode() && is_alpha) {
+                    view_model_.ime_append_letter(c);
+                } else {
+                    view_model_.append_query_char(c);
+                }
+                return true;
             }
         }
-        else {
-            exit_key_pressed_ = key;
-            exit_armed_ = view_model_.current_page() == model::AppPage::Apple;
-            if (exit_armed_) {
-                toast_->show_persistent_highlighted("Hold ",
-                                                    "ESC",
-                                                    " to exit",
-                                                    view::widgets::ToastTone::Warning);
-            }
-        }
-        return true;
+        return false;
     }
 
     void handle_release(uint32_t key) {
@@ -204,9 +245,15 @@ private:
 
         if (exit_armed_) {
             toast_->hide();
-        } else if (key == LV_KEY_ESC &&
-                   view_model_.current_page() == model::AppPage::Butter) {
-            view_model_.show_apple_page();
+        } else if (key == LV_KEY_ESC) {
+            const auto page = view_model_.current_page();
+            if (page == model::AppPage::Reader) {
+                view_model_.leave_reader();
+            } else if (page == model::AppPage::Search) {
+                view_model_.set_query_text("");
+            } else {
+                view_model_.show_search_page();
+            }
         }
         exit_key_pressed_ = 0;
         exit_armed_ = false;
@@ -320,6 +367,22 @@ int Application::run() {
     simulator_frame.bind_dark_mode(view_model.dark_mode_subject());
 #endif
 
+    if (view_model.load_ime_dict(assets.resolve("data/pinyin_dict.txt").string())) {
+        LOG_INFO("IME dict loaded");
+    } else {
+        LOG_WARN("IME dict missing; English-only input");
+    }
+
+    for (const char* index_path : {
+             "/home/mars/.local/share/vade/vade_index.db",
+             "/usr/share/vade/data/vade_index.db",
+         }) {
+        if (view_model.load_search_db(index_path)) {
+            LOG_INFO("FTS index loaded: {}", index_path);
+            break;
+        }
+    }
+
     ScreenManager screen_manager(view_model, assets);
     screen_manager.start();
     ShortcutController shortcuts(view_model, assets);
@@ -342,7 +405,8 @@ int Application::run() {
 #endif
     ) {
         lv_timer_handler();
-        lv_delay_ms(5);
+        // 注意：LVGL 默认 lv_delay_ms 是忙等（烧 CPU），必须用真睡眠
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
 
     if (quit_observer) {

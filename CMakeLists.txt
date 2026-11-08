@@ -434,6 +434,9 @@ target_link_libraries(${PROJECT_NAME}_platform
 file(GLOB_RECURSE MODEL_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/model/*.c"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/model/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/service/*.c"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/service/*.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/sqlite/*.c"
 )
 
 add_library(${PROJECT_NAME}_model
@@ -444,6 +447,8 @@ add_library(${PROJECT_NAME}_model
 target_include_directories(${PROJECT_NAME}_model
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/src/model"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/service"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/sqlite"
 )
 
 # ====================================================
@@ -491,6 +496,8 @@ target_include_directories(${PROJECT_NAME}_view
         ${CMAKE_CURRENT_SOURCE_DIR}/src/reactive
         ${CMAKE_CURRENT_SOURCE_DIR}/src/viewmodel
         ${CMAKE_CURRENT_SOURCE_DIR}/src/model
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/service
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/sqlite
         ${CMAKE_CURRENT_SOURCE_DIR}/src/platform
 )
 
@@ -518,6 +525,8 @@ target_include_directories(${PROJECT_NAME}_viewmodel
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/src/viewmodel/"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/model"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/service"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/sqlite"
         ${LVGL_INCLUDE_DIR}
 )
 
@@ -577,6 +586,8 @@ target_include_directories(${PROJECT_NAME}_core
         ${CMAKE_CURRENT_SOURCE_DIR}/src/view/widgets
         ${CMAKE_CURRENT_SOURCE_DIR}/src/viewmodel
         ${CMAKE_CURRENT_SOURCE_DIR}/src/model
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/service
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/sqlite
         ${CMAKE_CURRENT_SOURCE_DIR}/src/platform
 )
 
