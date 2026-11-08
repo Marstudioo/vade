@@ -4,6 +4,7 @@
  */
 #pragma once
 
+#include <map>
 #include <string>
 #include <vector>
 
@@ -32,6 +33,10 @@ public:
     std::string commit_first();      // 上屏首选
     void cancel();
 
+    // 词频自适应（搜狗式）：上屏即学习，持久化到用户词频文件，候选按使用频次上浮
+    void set_user_dict_path(const std::string& path);
+    void note_selection(const std::string& word);
+
 private:
     void refresh_candidates();
 
@@ -47,6 +52,11 @@ private:
     std::vector<Entry> entries_;          // 按 pinyin 字典序
     std::vector<std::string> candidates_;
     int selected_ = 0;
+    std::string user_dict_path_;
+    std::map<std::string, int> user_counts_;
+
+    void load_user_dict();
+    void save_user_dict();
 };
 
 } // namespace service

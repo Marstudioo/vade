@@ -102,6 +102,48 @@ void PinyinIme::cancel() {
     selected_ = 0;
 }
 
+void PinyinIme::set_user_dict_path(const std::string& path) {
+    user_dict_path_ = path;
+    load_user_dict();
+}
+
+void PinyinIme::load_user_dict() {
+    user_counts_.clear();
+    std::ifstream in(user_dict_path_);
+    if (!in) {
+        return;
+    }
+    std::string line;
+    while (std::getline(in, line)) {
+        const auto tab = line.find('\t');
+        if (tab == std::string::npos) {
+            continue;
+        }
+        user_counts_[line.substr(0, tab)] = std::atoi(line.c_str() + tab + 1);
+    }
+}
+
+void PinyinIme::save_user_dict() {
+    if (user_dict_path_.empty()) {
+        return;
+    }
+    std::ofstream out(user_dict_path_, std::ios::trunc);
+    if (!out) {
+        return;
+    }
+    for (const auto& [word, count] : user_counts_) {
+        out << word << '\t' << count << '\n';
+    }
+}
+
+void PinyinIme::note_selection(const std::string& word) {
+    if (word.empty()) {
+        return;
+    }
+    user_counts_[word]++;
+    save_user_dict();
+}
+
 void PinyinIme::refresh_candidates() {
     candidates_.clear();
     selected_ = 0;
@@ -131,7 +173,15 @@ void PinyinIme::refresh_candidates() {
     // 3) 无候选时保留原始拼音（可上屏英文/拼音原文）
     if (candidates_.empty()) {
         candidates_.push_back(composing_);
+        return;
     }
+    // 4) 词频自适应：用过的词上浮（稳定排序，同频保持原有顺序）
+    std::stable_sort(candidates_.begin(), candidates_.end(),
+                     [this](const std::string& a, const std::string& b) {
+                         const int ca = user_counts_.count(a) ? user_counts_.at(a) : 0;
+                         const int cb = user_counts_.count(b) ? user_counts_.at(b) : 0;
+                         return ca > cb;
+                     });
 }
 
 } // namespace service

@@ -69,6 +69,7 @@ public:
 
     // IME（DESIGN §11A）
     bool load_ime_dict(const std::string& path);
+    void load_ime_user_dict(const std::string& path);
     bool load_search_db(const std::string& path);
     bool ime_chinese_mode() const;
     void toggle_ime_mode();

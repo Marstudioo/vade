@@ -158,6 +158,8 @@ void BaseViewModel::leave_reader() { show_page(model::AppPage::Search); }
 // ── IME ─────────────────────────────────────────────────────────────
 bool BaseViewModel::load_ime_dict(const std::string& path) { return ime_.load_dict(path); }
 
+void BaseViewModel::load_ime_user_dict(const std::string& path) { ime_.set_user_dict_path(path); }
+
 bool BaseViewModel::load_search_db(const std::string& path) {
     auto fts = std::make_unique<service::FtsSearchService>();
     if (!fts->open(path)) {
@@ -203,6 +205,7 @@ void BaseViewModel::ime_commit_selected() {
     ime_version_subject_.set(ime_version_subject_.value() + 1);
     if (!word.empty()) {
         LOG_INFO("ime commit: '{}'", word);
+        ime_.note_selection(word);  // 词频学习
         set_query_text(query_text() + word);
     }
 }
@@ -211,6 +214,7 @@ void BaseViewModel::ime_commit_first() {
     const std::string word = ime_.commit_first();
     ime_version_subject_.set(ime_version_subject_.value() + 1);
     if (!word.empty()) {
+        ime_.note_selection(word);  // 词频学习
         set_query_text(query_text() + word);
     }
 }

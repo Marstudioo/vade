@@ -372,6 +372,10 @@ int Application::run() {
     if (!view_model.load_ime_dict("/home/mars/.local/share/vade/pinyin_dict.txt")) {
         view_model.load_ime_dict(assets.resolve("data/pinyin_dict.txt").string());
     }
+    // 词频记忆：上屏学习，持久化
+    view_model.load_ime_user_dict(std::getenv("VADE_USERDICT")
+                                      ? std::getenv("VADE_USERDICT")
+                                      : "/home/mars/.local/share/vade/ime_userdict.txt");
 
     for (const char* index_path : {
              static_cast<const char*>(std::getenv("VADE_INDEX_DB")),  // 桌面/测试可用环境变量指定索引库
