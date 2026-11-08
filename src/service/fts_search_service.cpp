@@ -112,6 +112,30 @@ bool FtsSearchService::open(const std::string& db_path) {
 
 bool FtsSearchService::is_open() const { return db_ != nullptr; }
 
+bool FtsSearchService::get_doc(const std::string& path,
+                               std::string& out_title,
+                               std::string& out_body) {
+    if (!db_ || path.empty()) {
+        return false;
+    }
+    sqlite3_stmt* stmt = nullptr;
+    if (sqlite3_prepare_v2(db_, "SELECT title, body FROM docs WHERE path = ? LIMIT 1",
+                           -1, &stmt, nullptr) != SQLITE_OK) {
+        return false;
+    }
+    sqlite3_bind_text(stmt, 1, path.c_str(), -1, SQLITE_TRANSIENT);
+    bool found = false;
+    if (sqlite3_step(stmt) == SQLITE_ROW) {
+        const char* title = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 0));
+        const char* body = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
+        out_title = title ? title : "";
+        out_body = body ? body : "";
+        found = true;
+    }
+    sqlite3_finalize(stmt);
+    return found;
+}
+
 std::string FtsSearchService::desegment(const std::string& s) {
     std::string out;
     out.reserve(s.size());

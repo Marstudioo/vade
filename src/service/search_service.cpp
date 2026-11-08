@@ -30,4 +30,14 @@ std::vector<model::SearchHit> MockSearchService::query(const std::string& text) 
     return hits;
 }
 
+bool MockSearchService::get_doc(const std::string& path,
+                                std::string& out_title,
+                                std::string& out_body) {
+    out_title = path.empty() ? "\u6F14\u793A\u6587\u6863" : path;  // 演示文档
+    out_body = "\uFF08\u793A\u610F\u6570\u636E\uFF1A\u8FD9\u662F\u6A21\u62DF\u68C0\u7D22\u670D\u52A1\u7684\u5360\u4F4D\u6B63\u6587\u3002\n\n"
+               "\u63A5\u5165 FTS5 \u771F\u5E93\u540E\uFF0C\u6B64\u5904\u663E\u793A\u77E5\u8BC6\u5E93\u6587\u6863\u7684\u5B8C\u6574\u6B63\u6587\u3002\n\n"
+               "\u00B7 \u652F\u6301\u6EDA\u52A8\u9605\u8BFB\n\u00B7 \u5B57\u53F7\u53EF\u5207\u6362\n\u00B7 Esc \u8FD4\u56DE\u68C0\u7D22";
+    return true;
+}
+
 } // namespace service

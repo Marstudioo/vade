@@ -15,12 +15,22 @@ class SearchService {
 public:
     virtual ~SearchService() = default;
     virtual std::vector<model::SearchHit> query(const std::string& text) = 0;
+    // 取文档正文（阅读页用）；不支持返回 false
+    virtual bool get_doc(const std::string& path,
+                         std::string& out_title,
+                         std::string& out_body) {
+        (void)path; (void)out_title; (void)out_body;
+        return false;
+    }
 };
 
 // 占位实现：返回固定演示结果，验证 UI 流转。
 class MockSearchService : public SearchService {
 public:
     std::vector<model::SearchHit> query(const std::string& text) override;
+    bool get_doc(const std::string& path,
+                 std::string& out_title,
+                 std::string& out_body) override;
 };
 
 } // namespace service

@@ -374,10 +374,11 @@ int Application::run() {
     }
 
     for (const char* index_path : {
+             static_cast<const char*>(std::getenv("VADE_INDEX_DB")),  // 桌面/测试可用环境变量指定索引库
              "/home/mars/.local/share/vade/vade_index.db",
              "/usr/share/vade/data/vade_index.db",
          }) {
-        if (view_model.load_search_db(index_path)) {
+        if (index_path && view_model.load_search_db(index_path)) {
             LOG_INFO("FTS index loaded: {}", index_path);
             break;
         }

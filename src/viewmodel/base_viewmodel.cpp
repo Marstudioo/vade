@@ -131,11 +131,22 @@ bool BaseViewModel::open_selected_result() {
     if (idx < 0 || idx >= static_cast<int>(hits.size())) {
         return false;
     }
-    // 片段1：正文占位；片段2 接 FTS5 后显示真实文档内容
-    model_.open_reader(hits[idx].title,
-                       hits[idx].snippet + "\n\n（阅读页骨架：片段2 接入索引后显示完整文档正文）");
+    const auto& hit = hits[idx];
+    std::string title, body;
+    if (search_service_->get_doc(hit.path, title, body)) {
+        // 超长文档截断保护（LVGL 长标签性能红线，DESIGN §5）
+        constexpr std::size_t kMaxBody = 6000;
+        if (body.size() > kMaxBody) {
+            body = body.substr(0, kMaxBody) + "\n\n…（全文约 " +
+                   std::to_string(body.size()) + " 字节，长文完整阅读后续版本支持）";
+        }
+        model_.open_reader(title.empty() ? hit.title : title, body);
+    } else {
+        model_.open_reader(hit.title, hit.snippet + "\n\n（正文读取失败，暂显示摘要）");
+    }
     show_page(model::AppPage::Reader);
     reader_version_subject_.set(reader_version_subject_.value() + 1);
+    LOG_INFO("reader open: '{}' ({} bytes)", model_.reader_title(), model_.reader_body().size());
     return true;
 }
 

@@ -21,6 +21,9 @@ public:
     bool open(const std::string& db_path);
     bool is_open() const;
     std::vector<model::SearchHit> query(const std::string& text) override;
+    bool get_doc(const std::string& path,
+                 std::string& out_title,
+                 std::string& out_body) override;
 
 private:
     std::vector<model::SearchHit> fts_query(const std::string& expr,
