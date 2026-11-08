@@ -23,6 +23,7 @@
 #include <string>
 #include <thread>
 #include <chrono>
+#include <vector>
 
 #if USE_DESKTOP
 #include "desktop_simulator_frame.h"
@@ -386,6 +387,62 @@ int Application::run() {
     screen_manager.start();
     ShortcutController shortcuts(view_model, assets);
 
+    // ── 自测键注入器：VADE_TEST_KEYS="z,h,i,enter"（逗号分词，longesc=长按ESC）
+    // 直接打进键路由，模拟物理按键全链路，供模拟器自动化回归使用
+    struct TestKeyDriver {
+        std::vector<std::string> tokens;
+        std::size_t index = 0;
+        int tick_in_token = 0;
+        lv_timer_t* timer = nullptr;
+
+        static uint32_t token_key(const std::string& t) {
+            if (t == "enter") return LV_KEY_ENTER;
+            if (t == "up") return LV_KEY_UP;
+            if (t == "down") return LV_KEY_DOWN;
+            if (t == "left") return LV_KEY_LEFT;
+            if (t == "right") return LV_KEY_RIGHT;
+            if (t == "tab") return '\t';
+            if (t == "backspace") return LV_KEY_BACKSPACE;
+            if (t == "esc" || t == "longesc") return LV_KEY_ESC;
+            return t.empty() ? 0 : static_cast<uint32_t>(t[0]);
+        }
+
+        static void tick(lv_timer_t* timer) {
+            auto* self = static_cast<TestKeyDriver*>(lv_timer_get_user_data(timer));
+            if (!self) return;
+            if (self->index >= self->tokens.size()) {
+                lv_timer_pause(timer);
+                return;
+            }
+            const std::string& tok = self->tokens[self->index];
+            const uint32_t key = token_key(tok);
+            const int hold_ticks = (tok == "longesc") ? 4 : 1;
+            if (self->tick_in_token == 0) {
+                platform::inject_key(key, true);
+            }
+            self->tick_in_token++;
+            if (self->tick_in_token > hold_ticks) {
+                platform::inject_key(key, false);
+                self->tick_in_token = 0;
+                self->index++;
+            }
+        }
+    };
+    TestKeyDriver test_keys;
+    if (const char* env_keys = std::getenv("VADE_TEST_KEYS")) {
+        std::string list(env_keys);
+        std::size_t pos = 0;
+        while (pos <= list.size()) {
+            const auto comma = list.find(',', pos);
+            const auto tok = list.substr(pos, comma == std::string::npos ? std::string::npos : comma - pos);
+            if (!tok.empty()) test_keys.tokens.push_back(tok);
+            if (comma == std::string::npos) break;
+            pos = comma + 1;
+        }
+        test_keys.timer = lv_timer_create(TestKeyDriver::tick, 200, &test_keys);
+        LOG_INFO("test key driver armed: {} tokens", test_keys.tokens.size());
+    }
+
     DarkModePersistence dark_mode_persistence{user_config_path, view_model.is_dark_mode()};
     auto* dark_mode_observer = lv_subject_add_observer(view_model.dark_mode_subject(),
                                                         persist_dark_mode_observer,
@@ -414,6 +471,16 @@ int Application::run() {
     if (dark_mode_observer) {
         lv_observer_remove(dark_mode_observer);
     }
+
+    // 退出前清屏：防止应用残帧留在 fb 上与启动器叠印（2026-01-09 实机教训）
+    lv_obj_t* black = lv_obj_create(lv_screen_active());
+    lv_obj_remove_style_all(black);
+    lv_obj_set_size(black, LV_PCT(100), LV_PCT(100));
+    lv_obj_set_style_bg_color(black, lv_color_black(), 0);
+    lv_obj_set_style_bg_opa(black, LV_OPA_COVER, 0);
+    lv_obj_move_foreground(black);
+    lv_refr_now(nullptr);
+    std::this_thread::sleep_for(std::chrono::milliseconds(30));
 
     return 0;
 }

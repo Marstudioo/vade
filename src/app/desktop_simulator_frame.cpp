@@ -373,6 +373,7 @@ void DesktopSimulatorFrame::handle_event(const SDL_Event& event, bool& running) 
             if (event.key.repeat) {
                 return;
             }
+            LOG_INFO("sim sdl key: sym={}", static_cast<unsigned>(event.key.keysym.sym));
             const auto control = map_control_key(event.key.keysym.sym);
             if (control != 0) {
                 emit_physical_key(static_cast<int32_t>(control), event.type == SDL_KEYDOWN);

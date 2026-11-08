@@ -522,6 +522,7 @@ void DesktopVirtualKeypad::emit_key(uint32_t key) {
         return;
     }
 
+    LOG_INFO("sim text key: {}", key);
     emit_key_state(key, true);
     emit_key_state(key, false);
 }

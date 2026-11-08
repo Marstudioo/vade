@@ -39,9 +39,9 @@
    OS SETTINGS
  *====================*/
 #ifdef _WIN32
-    #define LV_USE_OS                      LV_OS_SDL2
+    #define LV_USE_OS                      LV_OS_NONE  /* 单线程：渲染线程与 FreeType 有竞态（段错误实证 2026-11-09 二连） */
 #else
-    #define LV_USE_OS                      LV_OS_PTHREAD
+    #define LV_USE_OS                      LV_OS_NONE
 #endif
 
 
@@ -54,7 +54,7 @@
 #define LV_DRAW_BUF_ALIGN                  4
 
 /* Desktop-only rendering throughput */
-#define LV_DRAW_SW_DRAW_UNIT_CNT           4
+#define LV_DRAW_SW_DRAW_UNIT_CNT           1  /* 1=稳定：多线程渲染与 FreeType 缓存有竞态（段错误实证 2026-01-09），与设备一致 */
 #define LV_DRAW_THREAD_PRIO                LV_THREAD_PRIO_HIGH
 
 #if defined(__aarch64__) || defined(__ARM_NEON) || defined(__ARM_NEON__)

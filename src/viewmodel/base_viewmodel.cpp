@@ -4,6 +4,7 @@
  */
 #include "base_viewmodel.h"
 #include "fts_search_service.h"
+#include "logger.h"
 
 namespace viewmodel {
 
@@ -108,6 +109,7 @@ void BaseViewModel::run_search() {
     model_.set_results(search_service_->query(model_.query()));
     selected_result_subject_.set(model_.selected_result());
     results_version_subject_.set(results_version_subject_.value() + 1);
+    LOG_INFO("search: '{}' -> {} hits", model_.query(), model_.result_count());
 }
 
 const std::vector<model::SearchHit>& BaseViewModel::results() const { return model_.results(); }
@@ -189,6 +191,7 @@ void BaseViewModel::ime_commit_selected() {
     const std::string word = ime_.commit_selected();
     ime_version_subject_.set(ime_version_subject_.value() + 1);
     if (!word.empty()) {
+        LOG_INFO("ime commit: '{}'", word);
         set_query_text(query_text() + word);
     }
 }

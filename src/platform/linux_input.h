@@ -29,4 +29,7 @@ void set_global_key_listener(GlobalKeyListener listener, void* user_data);
 void clear_global_key_listener(GlobalKeyListener listener, void* user_data);
 const char* describe_key(uint32_t key);
 
+// 测试辅助：直接向键路由注入按键（press/release），模拟物理按键全链路
+void inject_key(uint32_t key, bool pressed);
+
 } // namespace platform

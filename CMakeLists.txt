@@ -524,6 +524,7 @@ add_library(${PROJECT_NAME}_viewmodel
 target_include_directories(${PROJECT_NAME}_viewmodel
     PUBLIC
         "${CMAKE_CURRENT_SOURCE_DIR}/src/viewmodel/"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/logger"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/model"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/service"
         "${CMAKE_CURRENT_SOURCE_DIR}/src/third_party/sqlite"
@@ -533,6 +534,7 @@ target_include_directories(${PROJECT_NAME}_viewmodel
 target_link_libraries(${PROJECT_NAME}_viewmodel
     PUBLIC
         lvgl
+        logger
         ${PROJECT_NAME}_reactive
         ${PROJECT_NAME}_model
         ${PROJECT_NAME}_platform

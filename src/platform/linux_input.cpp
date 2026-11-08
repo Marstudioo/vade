@@ -442,6 +442,10 @@ void clear_global_key_listener(GlobalKeyListener listener, void* user_data) {
     }
 }
 
+void inject_key(uint32_t key, bool pressed) {
+    route_key_state(key, pressed);
+}
+
 const char* describe_key(uint32_t key) {
     switch (key) {
         case LV_KEY_ESC:

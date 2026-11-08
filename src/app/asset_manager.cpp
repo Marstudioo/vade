@@ -30,7 +30,6 @@
 namespace app {
 namespace {
 
-#if !USE_DESKTOP
 constexpr const char* kNotoSansCjkRegular = "NotoSansCJKsc-Regular.otf";
 constexpr const char* kNotoSansCjkBold = "NotoSansCJKsc-Medium.otf";
 // 兜底：系统 ttc 集合（face 0 是日文字形，仅在简体单文件缺失时使用）
@@ -38,7 +37,6 @@ constexpr const char* kSystemCjkRegular =
     "/usr/share/fonts/opentype/noto/NotoSansCJK-Regular.ttc";
 constexpr const char* kSystemCjkBold =
     "/usr/share/fonts/opentype/noto/NotoSansCJK-Medium.ttc";
-#endif
 
 bool path_exists(const std::filesystem::path& path) {
     std::error_code ec;
@@ -182,9 +180,11 @@ lv_font_t* AssetManager::load_standard_font(uint32_t size, StandardFontWeight we
                              : kSystemCjkBold,
                          size);
     }
+#if !USE_DESKTOP
     if (font) {
         font->fallback = fallback_font(size);
     }
+#endif
     return font;
 }
 
