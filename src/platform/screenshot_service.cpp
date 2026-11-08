@@ -57,7 +57,7 @@ std::string timestamp_filename() {
     char buffer[48]{};
     std::snprintf(buffer,
                   sizeof(buffer),
-                  "template_%04d%02d%02d_%02d%02d%02d_%03d.png",
+                  "vade_%04d%02d%02d_%02d%02d%02d_%03d.png",
                   local_time.tm_year + 1900,
                   local_time.tm_mon + 1,
                   local_time.tm_mday,

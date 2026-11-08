@@ -106,7 +106,7 @@ Common CMake cache options:
 | `USE_DESKTOP` | `ON` | Build SDL desktop simulator when `ON`; build embedded Linux target when `OFF`. |
 | `APP_NAME` | `vade` | Application name used by installed asset lookup. |
 | `APP_ASSETS_ROOT` | empty | Optional runtime asset root. Expected layout includes `fonts/`, `images/`, etc. |
-| `APP_CONFIG_FILE` | platform default | Optional config path. Defaults to `config/template-app.conf` for desktop builds and `/etc/template-app.conf` for device builds. |
+| `APP_CONFIG_FILE` | platform default | Optional config path. Defaults to `config/vade.conf` for desktop builds and `/etc/vade.conf` for device builds. |
 | `APP_KEY_INPUT_DEVICE` | empty | Optional Linux evdev device path, e.g. `/dev/input/event0`. Empty means auto-scan `/dev/input/event*`. |
 | `APP_FRAMEBUFFER_DEVICE` | `/dev/fb0` | Linux framebuffer device used by embedded builds when `APP_USE_DRM=OFF`. |
 | `APP_USE_DRM` | `OFF` | Use LVGL's Linux DRM/KMS backend instead of fbdev for embedded builds. |
@@ -119,7 +119,7 @@ Asset lookup order:
 2. source-tree `assets/` for development
 3. `/usr/share/<APP_NAME>/` for installed deployments
 
-Theme startup behavior is configured in `config/template-app.conf`:
+Theme startup behavior is configured in `config/vade.conf`:
 
 ```ini
 [application]
@@ -127,9 +127,9 @@ dark_mode=yes
 ```
 
 Set `dark_mode` to `yes` or `no`. The parser also accepts `true`/`false` and `1`/`0`.
-Installed device builds use `/etc/template-app.conf` as the system default. Changing the theme
+Installed device builds use `/etc/vade.conf` as the system default. Changing the theme
 from the navigation bar (keyboard shortcut `6`) writes a per-user override to
-`$XDG_CONFIG_HOME/template-app/template-app.conf`, or `~/.config/template-app/template-app.conf`
+`$XDG_CONFIG_HOME/vade/vade.conf`, or `~/.config/vade/vade.conf`
 when `XDG_CONFIG_HOME` is not set. The per-user file takes precedence on the next launch.
 
 ## Desktop Builds
@@ -486,7 +486,7 @@ Package layout:
 | Path | Content |
 | --- | --- |
 | `/usr/bin/vade` | Application executable. |
-| `/etc/template-app.conf` | System-default application settings, including the startup theme. |
+| `/etc/vade.conf` | System-default application settings, including the startup theme. |
 | `/usr/share/vade/` | Runtime assets: fonts, images, audio. |
 | `/usr/share/APPLaunch/applications/vade.desktop` | APPLaunch launcher entry. |
 | `/usr/share/APPLaunch/share/images/vade*.png` | APPLaunch launcher icons/fallbacks. |

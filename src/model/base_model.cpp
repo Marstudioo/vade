@@ -9,7 +9,7 @@
 namespace model {
 
 const char* BaseModel::app_title() const {
-    return "Template App";
+    return "Vade";
 }
 
 const char* BaseModel::greeting() const {
