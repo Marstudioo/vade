@@ -121,6 +121,25 @@
 - **本地 AI 决策**：本地 LLM 三重不可行（模型 1.3G/速度/部署绑定）——对话**永远走外置后端三态**；本地只做 sherpa-onnx 语音输入（Phase 2）。"内置本地 AI"降格为：**本地意图路由**（快捷指令/离线 FAQ 直答，不发后端）。
 - 辅助：快捷指令模板（fn+数字）、重新生成、复制、token 计量条、错误重试。
 
+## 12A. 语音交互设计（M3→M3.5，参考 cardputer-xiaozhi 实现）
+
+**结论：可满足，分三级交付。**
+
+| 级 | 能力 | 实现 | 延迟红线 |
+|---|---|---|---|
+| V1 按键说话（M3） | 对话页长按说话→云端识别→TTS 回放 | 录音(pipewire/ALSA)→Opus 编码→**音频走独立 WS 流**（文本保持 unary）→服务端 VAD 判停 | 按下→首音 ≤1.5s |
+| V2 离线语音链 | 唤醒词+本地 ASR+本地 TTS | sherpa-onnx KWS+SenseVoice int8 / Piper TTS（WeFlow 流程现成） | 唤醒 <300ms，全链 ≤3s（离线兜底） |
+| V3 完全体 | 全双工语音伴侣 | Module LLM（路径 C）KWS/ASR/LLM/TTS 全在模块 | 毫秒级唤醒 |
+
+**XiaoZhi 的实现拆解（抄作业清单）**：
+- 双向语音 = WebSocket + **Opus 编码**（省带宽/抗丢包）；push-to-talk（空格键）起步，**服务端 VAD** 判定说完；TTS 播完**自动再听**（连续对话模式）。
+- 架构：C++ 主体 + Python 桥（`ws_bridge.py` 音频流、`display_bridge.py` PIL 渲染 framebuffer、`mcp_tools.py` 本地工具）；macOS 模拟器开发；CI 自动出 arm64 .deb。
+- 好做法吸收：语音流用 WS 是**合理例外**（持续双向音频流正是 WS 的用例），文本对话仍 unary 不变——**混合传输**。
+- 中文优先（记忆层证据）；语音音量/提示音走 miniaudio；fn+H 有语音键位表。
+
+**延迟预算（知识库 07-09 实测，RPi5 基准，A53 更慢）**：唤醒 100-200ms + ASR 2-5s（whisper-base；SenseVoice int8 更快，A53 待实测）+ LLM 500-1000ms + TTS 300-500ms → 总 3-7s。
+**压延迟四板斧**（必须全用）：流式 LLM（首 token 即 TTS）、分段 TTS（逐句合成播放）、本地唤醒/VAD、音频先行（先播"嗯…"占位）。
+
 ## 13. 任务模块（M2）
 
 - 看板速览：Hermes kanban 远程只读拉取（手动刷新键），状态分组（待办/进行/完成折叠）。
