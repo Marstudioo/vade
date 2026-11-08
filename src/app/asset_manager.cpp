@@ -171,11 +171,6 @@ lv_font_t* AssetManager::load_font(const std::filesystem::path& file_name, uint3
 }
 
 lv_font_t* AssetManager::load_standard_font(uint32_t size, StandardFontWeight weight) {
-#if USE_DESKTOP
-    LV_UNUSED(size);
-    LV_UNUSED(weight);
-    return nullptr;
-#else
     const char* path = weight == StandardFontWeight::Regular
                            ? kNotoSansCjkRegular
                            : kNotoSansCjkBold;
@@ -191,7 +186,6 @@ lv_font_t* AssetManager::load_standard_font(uint32_t size, StandardFontWeight we
         font->fallback = fallback_font(size);
     }
     return font;
-#endif
 }
 
 void AssetManager::add_root_if_valid(std::filesystem::path path) {
