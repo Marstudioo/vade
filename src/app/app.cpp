@@ -367,10 +367,9 @@ int Application::run() {
     simulator_frame.bind_dark_mode(view_model.dark_mode_subject());
 #endif
 
-    if (view_model.load_ime_dict(assets.resolve("data/pinyin_dict.txt").string())) {
-        LOG_INFO("IME dict loaded");
-    } else {
-        LOG_WARN("IME dict missing; English-only input");
+    // 词库：优先用户目录（免重装更新），回落随包资源
+    if (!view_model.load_ime_dict("/home/mars/.local/share/vade/pinyin_dict.txt")) {
+        view_model.load_ime_dict(assets.resolve("data/pinyin_dict.txt").string());
     }
 
     for (const char* index_path : {

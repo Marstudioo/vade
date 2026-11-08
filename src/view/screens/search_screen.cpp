@@ -204,9 +204,18 @@ void SearchScreen::refresh_ime_ui() {
         lv_obj_set_pos(results_container_, (304 - 304) / 2, y);
     }
 
-    // 候选内容
+    // 候选内容：选中项用 accent 色块+白字强区分；角标带位置指示 k/n
     const auto& candidates = view_model().ime_candidates();
     const int selected = view_model().ime_selected_candidate();
+    if (mode_badge_ && lv_obj_is_valid(mode_badge_)) {
+        if (composing && !candidates.empty()) {
+            std::string badge = view_model().ime_chinese_mode() ? "\u4E2D" : "\u82F1";
+            badge += " " + std::to_string(selected + 1) + "/" + std::to_string(candidates.size());
+            lv_label_set_text(mode_badge_, badge.c_str());
+        } else {
+            lv_label_set_text(mode_badge_, view_model().ime_chinese_mode() ? "\u4E2D" : "\u82F1");
+        }
+    }
     for (int i = 0; i < kMaxVisibleCandidates; i++) {
         if (!candidate_labels_[i] || !lv_obj_is_valid(candidate_labels_[i])) {
             continue;
@@ -218,7 +227,14 @@ void SearchScreen::refresh_ime_ui() {
             lv_obj_remove_flag(candidate_labels_[i], LV_OBJ_FLAG_HIDDEN);
             reactive::bind_theme(candidate_labels_[i], view_model().dark_mode_subject(), reactive::ThemeRole::Text);
             if (i == selected) {
-                lv_obj_set_style_text_color(candidate_labels_[i], lv_color_hex(kAccent), 0);
+                // 强区分：accent 色块 + 白字 + 圆角
+                lv_obj_set_style_bg_color(candidate_labels_[i], lv_color_hex(kAccent), 0);
+                lv_obj_set_style_bg_opa(candidate_labels_[i], LV_OPA_COVER, 0);
+                lv_obj_set_style_radius(candidate_labels_[i], 4, 0);
+                lv_obj_set_style_pad_hor(candidate_labels_[i], 4, 0);
+                lv_obj_set_style_text_color(candidate_labels_[i], lv_color_hex(0xFFFFFF), 0);
+            } else {
+                lv_obj_set_style_bg_opa(candidate_labels_[i], LV_OPA_TRANSP, 0);
             }
         } else {
             lv_obj_add_flag(candidate_labels_[i], LV_OBJ_FLAG_HIDDEN);

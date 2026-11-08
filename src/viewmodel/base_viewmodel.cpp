@@ -73,7 +73,21 @@ const std::string& BaseViewModel::query_text() const { return model_.query(); }
 void BaseViewModel::set_query_text(const std::string& text) {
     model_.set_query(text);
     query_subject_.set(text.c_str());
-    run_search();
+    // 200ms 防抖搜索（DESIGN §11）：连续打字只在停手后搜一次
+    if (!search_timer_) {
+        search_timer_ = lv_timer_create(search_debounce_cb, 200, this);
+    } else {
+        lv_timer_resume(search_timer_);
+        lv_timer_reset(search_timer_);
+    }
+}
+
+void BaseViewModel::search_debounce_cb(lv_timer_t* timer) {
+    auto* self = static_cast<BaseViewModel*>(lv_timer_get_user_data(timer));
+    if (self) {
+        lv_timer_pause(timer);
+        self->run_search();
+    }
 }
 
 void BaseViewModel::append_query_char(char c) {

@@ -89,6 +89,7 @@ public:
 
 private:
     void publish_page();
+    static void search_debounce_cb(lv_timer_t* timer);
 
     model::BaseModel model_;
     std::unique_ptr<service::SearchService> search_service_;
@@ -103,6 +104,7 @@ private:
     reactive::IntSubject font_level_subject_;
     reactive::IntSubject ime_version_subject_;
     reactive::BoolSubject quit_requested_subject_;
+    lv_timer_t* search_timer_ = nullptr;
 };
 
 } // namespace viewmodel
